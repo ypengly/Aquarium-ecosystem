@@ -1,0 +1,7 @@
+__pycache__/
+*.pyc
+node_modules/
+dist/
+simulation/grpc/sim_pb2*.py
+server/internal/simpb/*.pb.go
+.env

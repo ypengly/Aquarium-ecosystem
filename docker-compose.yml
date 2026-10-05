@@ -1,0 +1,37 @@
+# docker compose up   ->   http://localhost:3000
+services:
+  postgres:                       # provisioned now; first used in Phase 18 (persistence)
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: aquarium
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-aquarium_dev_only}
+      POSTGRES_DB: aquarium
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./database/migrations:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U aquarium"]
+      interval: 5s
+      retries: 10
+
+  python-simulation:
+    build: { context: ., dockerfile: simulation/Dockerfile }
+    environment:
+      SIM_PORT: "50051"
+    expose: ["50051"]
+
+  go-server:
+    build: { context: ., dockerfile: server/Dockerfile }
+    environment:
+      SIM_ADDR: python-simulation:50051
+      PORT: "8080"
+    depends_on: [python-simulation]
+    ports: ["8080:8080"]
+
+  client:
+    build: ./client
+    ports: ["3000:80"]
+    depends_on: [go-server]
+
+volumes:
+  pgdata:

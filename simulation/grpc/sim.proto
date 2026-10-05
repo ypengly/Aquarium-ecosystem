@@ -1,0 +1,113 @@
+syntax = "proto3";
+package aquarium.sim.v1;
+option go_package = "aquarium/server/internal/simpb";
+
+service Simulation {
+  rpc CreateWorld(CreateWorldRequest) returns (WorldInfo);
+  rpc Step(StepRequest) returns (Snapshot);
+  rpc GetSnapshot(AquariumRef) returns (Snapshot);
+  rpc AddFood(AddFoodRequest) returns (CommandResult);
+  rpc AddCreature(AddCreatureRequest) returns (CommandResult);
+  rpc RemoveCreature(RemoveCreatureRequest) returns (CommandResult);
+  rpc Inspect(InspectRequest) returns (CreatureDetail);
+  rpc DropWorld(AquariumRef) returns (CommandResult);
+}
+
+message AquariumRef { string aquarium_id = 1; }
+
+message CreateWorldRequest {
+  string aquarium_id = 1;
+  int64 seed = 2;
+  bool populate_default = 3;
+}
+
+message Circle { float x = 1; float y = 2; float r = 3; }
+
+message SpeciesInfo {
+  string key = 1;
+  string name = 2;
+  float size = 3;
+  float vision = 4;
+  uint32 color = 5;
+  uint32 stripe = 6;
+  string trophic = 7;
+}
+
+message WorldInfo {
+  string aquarium_id = 1;
+  float width = 2;
+  float height = 3;
+  float floor_y = 4;
+  int32 tick_rate = 5;
+  repeated Circle rocks = 6;
+  repeated Circle shelters = 7;
+  repeated SpeciesInfo species = 8;
+}
+
+message StepRequest { string aquarium_id = 1; int32 ticks = 2; }
+
+message CreatureState {
+  int32 id = 1;
+  string species = 2;
+  float x = 3;
+  float y = 4;
+  float vx = 5;
+  float vy = 6;
+  float heading = 7;
+  string state = 8;
+  float energy = 9;
+  float hunger = 10;
+  float health = 11;
+  float size = 12;
+}
+
+message FoodState { int32 id = 1; string kind = 2; float x = 3; float y = 4; }
+
+message WorldEvent { int64 tick = 1; string kind = 2; string text = 3; int32 creature_id = 4; }
+
+message SimStats { float step_ms = 1; int32 decisions = 2; int32 creatures = 3; int32 food = 4; }
+
+message Snapshot {
+  string aquarium_id = 1;
+  int64 tick = 2;
+  double time = 3;
+  repeated CreatureState creatures = 4;
+  repeated FoodState food = 5;
+  repeated WorldEvent events = 6;
+  SimStats stats = 7;
+}
+
+message AddFoodRequest { string aquarium_id = 1; float x = 2; float y = 3; int32 count = 4; string kind = 5; }
+message AddCreatureRequest { string aquarium_id = 1; string species = 2; float x = 3; float y = 4; }
+message RemoveCreatureRequest { string aquarium_id = 1; int32 creature_id = 2; }
+message CommandResult { bool ok = 1; string message = 2; int32 id = 3; }
+
+message InspectRequest { string aquarium_id = 1; int32 creature_id = 2; }
+message ActionScore { string action = 1; float score = 2; }
+message MemoryItem { string kind = 1; float x = 2; float y = 3; float strength = 4; }
+
+message CreatureDetail {
+  bool found = 1;
+  int32 id = 2;
+  string name = 3;
+  string species = 4;
+  double age = 5;
+  float health = 6;
+  float energy = 7;
+  float hunger = 8;
+  float safety = 9;
+  float social = 10;
+  string personality = 11;
+  string mood = 12;
+  string state = 13;
+  string goal = 14;
+  map<string, float> genes = 15;
+  map<string, float> traits = 16;
+  repeated ActionScore scores = 17;
+  repeated MemoryItem memories = 18;
+  repeated string recent = 19;
+  bool has_target = 20;
+  float target_x = 21;
+  float target_y = 22;
+  float vision = 23;
+}
